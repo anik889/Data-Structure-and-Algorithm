@@ -2,24 +2,28 @@
 #include<stdlib.h>
 
 // ---------------- Structure Definition ----------------
+// each node holds an integer value and a pointer to the next node
 struct node{
     int data;
     struct node *next;
 };
 
 // ---------------- Create a new node ----------------
+// allocates memory for a node, fills in its data, sets next to NULL,
+// and returns the address of the new node
 struct node* createnode(int value){
     struct node *newnode=(struct node*)malloc(sizeof(struct node));
-    if(newnode==NULL){                  // check malloc success
+    if(newnode==NULL){
         printf("Memory Allocation Failed!\n");
         exit(1);
     }
     newnode->data=value;
-    newnode->next=NULL;                 // fixed: was newnod->next (typo)
-    return newnode;                     // fixed: was missing return
+    newnode->next=NULL;
+    return newnode;
 }
 
 // ---------------- Insert at front ----------------
+// creates a new node and makes it the new head of the list
 void push_front(struct node **head, int value){
     struct node *newnode=createnode(value);
     newnode->next=*head;
@@ -27,9 +31,11 @@ void push_front(struct node **head, int value){
 }
 
 // ---------------- Insert at back ----------------
+// walks to the last node and attaches the new node after it;
+// handles the empty-list case separately (new node becomes head)
 void push_back(struct node **head, int value){
     struct node *newnode=createnode(value);
-    if(*head==NULL){                    // empty list case
+    if(*head==NULL){
         *head=newnode;
         return;
     }
@@ -40,18 +46,20 @@ void push_back(struct node **head, int value){
 }
 
 // ---------------- Insert at given position (1-indexed) ----------------
+// walks to the node just before the target position, then links
+// the new node in between it and the node that follows
 void insert(struct node **head, int value, int position){
-    if(position==1){                    // insert at front
+    if(position==1){
         push_front(head, value);
         return;
     }
-    if(*head==NULL){                    // nothing to walk through
+    if(*head==NULL){
         printf("Out Of Bound!\n");
         return;
     }
 
     struct node *newnode=createnode(value);
-    struct node *temp=*head;            // fixed: was 'head' (missing *)
+    struct node *temp=*head;
     int count=1;
     while(count<position-1 && temp!=NULL){
         temp=temp->next;
@@ -59,7 +67,7 @@ void insert(struct node **head, int value, int position){
     }
     if(temp==NULL){
         printf("Out Of Bound!\n");
-        free(newnode);                  // avoid leaking the unused node
+        free(newnode);
         return;
     }
     newnode->next=temp->next;
@@ -67,6 +75,7 @@ void insert(struct node **head, int value, int position){
 }
 
 // ---------------- Delete from front ----------------
+// moves head to the second node and frees the old first node
 void pop_front(struct node **head){
     if(*head==NULL){
         printf("List is empty!\n");
@@ -78,50 +87,57 @@ void pop_front(struct node **head){
 }
 
 // ---------------- Delete from back ----------------
+// walks to the second-to-last node, frees the last node,
+// and marks the second-to-last node as the new end of the list;
+// handles the single-node case separately
 void pop_back(struct node **head){
     if(*head==NULL){
         printf("List is empty!\n");
         return;
     }
-    if((*head)->next==NULL){            // fixed: Null -> NULL, only one node
+    if((*head)->next==NULL){
         free(*head);
         *head=NULL;
         return;
     }
     struct node *temp=*head;
-    while(temp->next->next!=NULL)       // stop at second-to-last node
+    while(temp->next->next!=NULL)
         temp=temp->next;
     free(temp->next);
     temp->next=NULL;
 }
 
 // ---------------- Delete at given position (1-indexed) ----------------
+// walks to the node just before the target, unlinks the target node
+// from the chain, and frees it
 void delete(struct node **head, int position){
     if(*head==NULL){
         printf("List is empty!\n");
         return;
     }
-    if(position==1){                    // delete front
+    if(position==1){
         pop_front(head);
         return;
     }
 
-    struct node *temp=*head;            // fixed: was 'head' (missing *)
-    int count=1;                        // fixed: was undeclared 'count'
+    struct node *temp=*head;
+    int count=1;
     while(count<position-1 && temp->next!=NULL){
         temp=temp->next;
         count++;
     }
-    if(temp->next==NULL){               // fixed: check the node to delete, not temp
+    if(temp->next==NULL){
         printf("Out of Bounds!\n");
         return;
     }
-    struct node *toDelete=temp->next;   // fixed: was deleting 'temp' itself
+    struct node *toDelete=temp->next;
     temp->next=toDelete->next;
     free(toDelete);
 }
 
 // ---------------- Search for a value (returns position, 1-indexed) ----------------
+// walks the list comparing each node's data to the target value;
+// returns the 1-indexed position if found, or -1 if not found
 int search(struct node *head, int value){
     struct node *temp=head;
     int position=1;
@@ -131,17 +147,19 @@ int search(struct node *head, int value){
         temp=temp->next;
         position++;
     }
-    return -1;                          // not found
+    return -1;
 }
 
 // ---------------- Sort the list (ascending, bubble sort on data) ----------------
+// compares every pair of nodes and swaps their DATA (not the nodes
+// themselves) whenever they're out of order
 void sort(struct node *head){
     if(head==NULL) return;
     struct node *i, *j;
     for(i=head; i->next!=NULL; i=i->next){
         for(j=i->next; j!=NULL; j=j->next){
             if(i->data > j->data){
-                int temp=i->data;       // swap data, not pointers
+                int temp=i->data;
                 i->data=j->data;
                 j->data=temp;
             }
@@ -150,6 +168,7 @@ void sort(struct node *head){
 }
 
 // ---------------- Print the list ----------------
+// walks the list from head to end, printing each node's data
 void traverse(struct node *head){
     if(head==NULL){
         printf("List is empty!\n");
@@ -164,7 +183,7 @@ void traverse(struct node *head){
 }
 
 int main(){
-    struct node *head=NULL;             // fixed: was missing declaration
+    struct node *head=NULL;
 
     push_back(&head, 10);
     push_back(&head, 20);
@@ -183,7 +202,7 @@ int main(){
     pop_back(&head);
     traverse(head);                     // 10 99 20
 
-    delete(&head, 2);                   // fixed: was called with 3 args
+    delete(&head, 2);
     traverse(head);                     // 10 20
 
     int pos=search(head, 20);
